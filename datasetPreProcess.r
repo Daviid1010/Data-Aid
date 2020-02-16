@@ -10,11 +10,11 @@ setwd("Desktop/ProjectEnviroment")
 getwd()
 
 ## install and add R packages
-install.packages("dpylr")
-install.packages("gdata")
-install.packages("xlsx")
-install.packages("rio")
-install_formats()
+##install.packages("dpylr")
+##install.packages("gdata")
+##install.packages("xlsx")
+##install.packages("rio")
+##install_formats()
 library(rio)
 library(gdata)
 library(dplyr)
@@ -34,7 +34,7 @@ head(kaggle)
 unique(kaggle$Invoice.ID)
 kaggle$Invoice.ID = as.character(kaggle$Invoice.ID)
 kaggle$City = as.character(kaggle$City)
-kaggle$Date = as.Date(kaggle$Date)
+kaggle$Date = as.character(kaggle$Date)
 kaggle$Time = as.character(kaggle$Time)
 kaggle$Country = "Myanmar"
 
@@ -82,7 +82,7 @@ length(unique(kaggleInvoice$InvoiceNo))
 
 ## 1000 unique instances in kaggle dataset, 10000 instances, no need to check for duplicate invoices
 ### we can safely remove data from kaggle
-columnsRM = c("Date","Time", "DateTime","Country","location")
+columnsRM = c("Date","Time", "DateTime","Country","Location")
 kaggle = kaggle[!names(kaggle) %in% columnsRM]
 
 ##rename data to be consistent with uci
@@ -134,7 +134,7 @@ uci = uci[!names(uci) %in% columnsRM]
 
 
 ##add blank location column (online data so no location)
-uciInvoice$location = ""
+uciInvoice$Location = ""
 
 ##chnage country to character
 uciInvoice$Country = as.character(uciInvoice$Country)
@@ -153,6 +153,10 @@ LineAll = rbind(kaggle,uci)
 names(uci)
 names(kaggle)
 
+##### addd one as foreign key to all line items
+##InvoiceAll$CustomerId = 1
+
+
 head(InvoiceAll)
 head(LineAll)
 tail(LineAll)
@@ -163,6 +167,5 @@ write.csv(file = "UCILineItems.csv",uci)
 
 write.csv(file ="InvoiceData.csv",InvoiceAll)
 write.csv(file = "LineItemData.csv",LineAll)
-
 
   
