@@ -28,6 +28,7 @@ print(data)
 arrays.remove(" ")
 arrays.remove("  ")
 print(arrays)
+splitArrays = arrays
 
 
 
@@ -42,8 +43,26 @@ print(shopAddress2)
 
 item1 = arrays[5]
 print("Item 1: "+item1)
+split1 = item1.split("\n");
+print(split1)
+line1desc = split1[0]
+
+
 item2 = arrays[6]
 print("Item 2: "+item2)
+split2 = item2.split("\n")
+print(split2)
+line2desc = split2[1]
+line3price = split2[5]
+print(line3price)
+
+
+
 item3 = arrays[7]
 print("Item 3: "+item3)
+split3 = item3.split("\n")
+print(split3)
+
+split4 = arrays[8]
+print(split4)
 

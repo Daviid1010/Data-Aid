@@ -1,4 +1,3 @@
 USE dataaid;
 
-SELECT COUNT(*)
-FROM lineitems;
+SELECT * FROM lineitems;

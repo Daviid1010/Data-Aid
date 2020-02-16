@@ -13,7 +13,7 @@ DROP TABLE IF EXISTS Invoices;
 
 CREATE TABLE Invoices(
 	InvoiceId INT auto_increment,
-    InvoiceNo INT,
+    InvoiceNo INT UNIQUE,
     InvoiceDate VARCHAR(255),
     Location VARCHAR(255),
     Country VARCHAR(255),
@@ -30,5 +30,6 @@ CREATE TABLE LineItems(
     Description VARCHAR(500),
     UnitPrice DECIMAL,
     Quantity INT,
-    PRIMARY KEY(LineItemId)
+    PRIMARY KEY(LineItemId),
+    FOREIGN KEY(InvoiceNo) REFERENCES Invoices(InvoiceNo)
 );
