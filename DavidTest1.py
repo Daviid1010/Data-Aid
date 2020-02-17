@@ -118,8 +118,8 @@ print(dataSetLineItems)
 dataSetInvoice= pd.DataFrame({
     'InvoiceNo':[InvoiceNum],
     'InvoiceDate':[dateStr],
+    'location': [shopAddress1],
     'Country':["Ireland"],
-    'location':[shopAddress1],
     'CustomerId':[1]
 })
 

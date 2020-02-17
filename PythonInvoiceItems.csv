@@ -1,2 +1,2 @@
-,InvoiceNo,InvoiceDate,Country,location,CustomerId
-0,82729877,17/02/2020,Ireland,47-48 OConnell Steet,1
+,InvoiceNo,InvoiceDate,location,Country,CustomerId
+0,82729877,17/02/2020,47-48 OConnell Steet,Ireland,1
