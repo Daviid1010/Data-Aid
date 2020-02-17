@@ -119,7 +119,7 @@ dataSetInvoice= pd.DataFrame({
     'InvoiceNo':[InvoiceNum],
     'InvoiceDate':[dateStr],
     'Country':["Ireland"],
-    'location':[shopAddress1+" "+shopAddress2],
+    'location':[shopAddress1],
     'CustomerId':[1]
 })
 

@@ -9,7 +9,7 @@ LINES TERMINATED BY '\n'
 IGNORE 1 ROWS;
 
 LOAD DATA LOCAL INFILE '/home/david/Desktop/Data-Aid/PythonLineItem.csv'
-INTO TABLE lineitems
+REPLACE INTO TABLE lineitems
 FIELDS TERMINATED BY ','
 ENCLOSED BY '"'
 LINES TERMINATED BY '\n'
