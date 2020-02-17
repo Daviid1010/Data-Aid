@@ -44,7 +44,10 @@ print("Shop Address 1: ",shopAddress1)
 print("Shop Address 2: ",shopAddress2)
 
 print("VAT Number:",data[6][-8:])
-InvoiceNum = data[6][-8:]
+
+
+
+InvoiceNum = int(data[6][-8:])
 
 date = datetime.date(datetime.now())
 dateStr = date.strftime("%d/%m/%Y")
@@ -55,7 +58,7 @@ print("Item 1: "+item1)
 split1 = item1.split("\n");
 print(split1)
 line1desc = split1[0]
-line1price = split1[6]
+line1price = float(split1[6])
 line1quantity = 1
 
 
@@ -71,7 +74,7 @@ print("Item 2: "+item2)
 split2 = item2.split("\n")
 print(split2)
 line2desc = split2[1]
-line2price = split2[4][-5:]
+line2price = float(split2[4][-5:])
 quantityline2 = 1
 
 print("###### Item 2")
@@ -92,11 +95,37 @@ item3desc = split3[0]
 
 split4 = arrays[8]
 print(split4)
-item3price = split4[-4:]
+item3price = float(split4[-4:])
 item3quantity = 1
 
 print("############ Item 3 ")
 print(item3desc)
 print(item3price)
 print(item3quantity)
+
+
+
+dataSetLineItems = pd.DataFrame({
+    'InvoiceNo':[InvoiceNum,InvoiceNum,InvoiceNum],
+    'Description':[line1desc,line2desc,item3desc],
+    'UnitPrice:':[line1price,line2price,item3price],
+    'Quantity':[line1quantity,quantityline2,item3quantity]
+})
+
+print(dataSetLineItems)
+
+
+dataSetInvoice= pd.DataFrame({
+    'InvoiceNo':[InvoiceNum],
+    'InvoiceDate':[dateStr],
+    'Country':["Ireland"],
+    'location':[shopAddress1+" "+shopAddress2],
+    'CustomerId':[1]
+})
+
+print(dataSetInvoice)
+
+dataSetLineItems.to_csv("PythonLineItem.csv", sep=',')
+dataSetInvoice.to_csv("PythonInvoiceItems.csv", sep=',')
+
 

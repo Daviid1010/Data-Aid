@@ -1,3 +1,3 @@
 USE dataaid;
 
-SELECT * FROM lineitems;
+SELECT * FROM invoices;
