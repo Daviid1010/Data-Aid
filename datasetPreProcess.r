@@ -100,12 +100,18 @@
     
     ##UCI Dataset
     convert("uciOnlineRetail.xlsx","uciOnlineRetail.csv")
-    uci = read.csv("uciOnlineRetail.csv")
+    uci = read.csv("OnlineRetail.csv")
     nrow(uci)
     head(uci)
     unique(uci$InvoiceNo)
     summary(uci)
     sum(is.na(uci$InvoiceNo))
+    
+    hist(uci$UnitPrice)
+    max(uci$UnitPrice)
+    min(uci$UnitPrice)
+    boxplot(uci$UnitPrice)
+    mean(uci$UnitPrice)
     
     ## uci data refactor and removal of some rows
     uci$InvoiceNo = as.character(uci$InvoiceNo)

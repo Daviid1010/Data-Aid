@@ -12,8 +12,6 @@ import os
 
 ##print(os.getcwd())
 
-############################
-### Pre-Processing Here
 
 
 out = pytesseract.image_to_string(cv2.imread("Images/schuh.jpeg"))
