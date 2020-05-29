@@ -1,0 +1,65 @@
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"JavaScriptSettings\">\r\n    <option name=\"languageLevel\" value=\"ES6\" />\r\n  </component>\r\n  <component name=\"ProjectRootManager\" version=\"2\" project-jdk-name=\"Python 3.7 (2)\" project-jdk-type=\"Python SDK\" />\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/misc.xml	(revision 84efaac2f8742ba0c2723af3466c11db4e7d16c5)
++++ .idea/misc.xml	(date 1590772180380)
+@@ -3,5 +3,5 @@
+   <component name="JavaScriptSettings">
+     <option name="languageLevel" value="ES6" />
+   </component>
+-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.7 (2)" project-jdk-type="Python SDK" />
++  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.8 (ProjectOne)" project-jdk-type="Python SDK" />
+ </project>
+\ No newline at end of file
+Index: TopicEval.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import pandas as pd\r\nimport os\r\n\r\nprint(os.getcwd())\r\npapers = pd.read_csv('LineItemData.csv')\r\n\r\nprint(papers.head())\r\npapers = papers.drop(columns=['Unnamed: 0','InvoiceNo','UnitPrice', 'Quantity'], axis=1)\r\n\r\n#papers = papers.sample(10)\r\n\r\nprint(papers.head())\r\n\r\nimport re\r\n\r\n## remove punctuation\r\npapers['paper_text_processed'] = papers['Description'].fillna('').astype(str).map(lambda x: re.sub('[,\\.!?]', '', x))\r\n## convert to lower case\r\npapers['paper_text_processed'] = papers['paper_text_processed'].map(lambda x: x.lower())\r\n\r\n#print first rows\r\n##print(papers.head())\r\n\r\nimport gensim\r\nfrom gensim.utils import simple_preprocess\r\ndef sent_to_words(sentences):\r\n    for sentence in sentences:\r\n        yield(gensim.utils.simple_preprocess(str(sentence),\r\n                                             deacc=True))\r\n\r\n\r\ndata = papers.paper_text_processed.values.tolist()\r\ndata_words = list(sent_to_words(data))\r\n##print(data_words[:1])\r\n\r\n\r\n##Phrase Modelling: Bi-grams and Tr-grams\r\n\r\nbigram = gensim.models.Phrases(data_words, min_count=5, threshold=100)\r\ntrigram = gensim.models.Phrases(bigram[data_words], threshold=100)\r\n\r\nbigram_mod = gensim.models.phrases.Phraser(bigram)\r\ntrigram_mod = gensim.models.phrases.Phraser(trigram)\r\n\r\n## remove stopwords, make bigrams, and lemmatize\r\nimport nltk\r\n#nltk.download('stopwords')\r\nfrom nltk.corpus import stopwords\r\n\r\nstop_words = stopwords.words('english')\r\nstop_words.extend(['from', 'subject', 're', 'edu', 'use'])\r\n\r\ndef remove_stopwords(texts):\r\n    return [[word for word in simple_preprocess(str(doc)) if word not in stop_words] for doc in texts]\r\n\r\ndef make_bigrams(texts):\r\n    return [bigram_mod[doc] for doc in texts]\r\n\r\ndef make_trigrams(texts):\r\n    return [trigram_mod[bigram_mod[doc]] for doc in texts]\r\n\r\n\r\nimport  spacy\r\n\r\nnlp = spacy.load('en_core_web_sm', disable=['parser', 'ner'])\r\n\r\ndef lemmatization(texts, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV']):\r\n    \"\"\"https://spacy.io/api/annotation\"\"\"\r\n    texts_out = []\r\n    for sent in texts:\r\n        doc = nlp(\" \".join(sent))\r\n        texts_out.append([token.lemma_ for token in doc if token.pos_ in allowed_postags])\r\n    return texts_out\r\n\r\n\r\ndata_words_nostops = remove_stopwords(data_words)\r\ndata_words_bigrams = make_bigrams(data_words_nostops)\r\ndata_lemmatized = lemmatization(data_words_bigrams, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])\r\n\r\n#print(data_lemmatized[:1])\r\n\r\n## Data Transformation: Corpus and Dictionary\r\n\r\nimport gensim.corpora as corpora\r\n\r\nid2word = corpora.Dictionary(data_lemmatized)\r\n\r\ntexts = data_lemmatized\r\n\r\ncorpus = [id2word.doc2bow(text) for text in texts]\r\n\r\nprint(corpus[:1])\r\n\r\n###Base Model\r\n### Now I will train the LDA model\r\n## chunksize controls how many documents are processed at a time, increasing chunksize will speed up training\r\n## passes controls how often we train the model on the entire corpus\r\n\r\nlda_model = gensim.models.LdaModel(corpus= corpus,\r\n                                       id2word=id2word,\r\n                                       num_topics=6,\r\n                                       random_state=100,\r\n                                       chunksize=1000,\r\n                                       passes=10,\r\n                                       per_word_topics=True)\r\n\r\nfrom pprint import pprint\r\n##Print keywords in the topics\r\npprint(lda_model.print_topics())\r\ndocs_lda = lda_model[corpus]\r\n\r\nfrom gensim.models import CoherenceModel\r\n\r\n##Compute Coherence Score\r\ncoherence_model_lda = CoherenceModel(model=lda_model,\r\n                                     texts=data_lemmatized,\r\n                                     dictionary= id2word,\r\n                                     coherence='u_mass',\r\n                                     )\r\n\r\ncoherence_lda = coherence_model_lda.get_coherence()\r\n\r\nprint('\\nCoherence Score: ', coherence_lda)\r\n\r\n## hyperparameter tuning\r\n## model hyperparamester: setting for machine learning\r\n## model paramesters: what the model learns during training, weights for words etc\r\n\r\n## Hyperparameters: Number of topics,\r\n# Dirichlet hyperparameter alpha: Document-Topic Density\r\n## Dirichlet hyperparameter beta: Word-Topic Density\r\n\r\ndef compute_coherence_values(corpus, dictionary, k, a, b):\r\n    lda_model = gensim.models.LdaModel(corpus=corpus,\r\n                                       id2word=id2word,\r\n                                       random_state=100,\r\n                                       chunksize=100,\r\n                                       passes=10,\r\n                                       alpha=a,\r\n                                       eta=b,\r\n                                       per_word_topics=True)\r\n    coherence_model_lda = CoherenceModel(model=lda_model,\r\n                                         texts=data_lemmatized, dictionary=id2word, coherence='u_mass')\r\n\r\n    return coherence_model_lda.get_coherence()\r\n\r\n\r\nimport numpy as np\r\nimport tqdm\r\n\r\ngrid = {}\r\ngrid['Validation_Set'] = {}\r\n\r\nmin_topics = 2\r\nmax_topics = 11\r\nstep_size = 1\r\ntopics_range = range(min_topics, max_topics, step_size)\r\n\r\n##alpha\r\nalpha = list(np.arange(0.01, 1, 0.3))\r\nalpha.append('symmetric')\r\nalpha.append('asymmetric')\r\n\r\n## beta\r\nbeta = list(np.arange(0.01, 1, 0.3))\r\nbeta.append('symmetric')\r\n\r\n# Validation Sets\r\nnum_of_docs = int(len(corpus))\r\ncorpus_sets = [# gensim.utils.ClippedCorpus(corpus, num_of_docs*0.25),\r\n               # gensim.utils.ClippedCorpus(corpus, num_of_docs*0.5),\r\n               gensim.utils.ClippedCorpus(corpus, int(num_of_docs*0.75)),\r\n               corpus]\r\n\r\ncorpus_title = ['75% Corpus', '25% Corpus']\r\n\r\nmodel_results = {'Validation_Set': [],\r\n                 'Topics':[],\r\n                 'Alpha':[],\r\n                 'Beta':[],\r\n                 'Coherence':[]\r\n                 }\r\n\r\nif 1 ==1:\r\n    pbar = tqdm.tqdm(total=540)\r\n\r\n    ## iterate through validation corpuses\r\n    for i in range(len(corpus_sets)):\r\n        # iterate through topics\r\n        for k in topics_range:\r\n            for a in alpha:\r\n                for b in beta:\r\n                    cv = compute_coherence_values(corpus=corpus_sets[i], dictionary=id2word, k=k, a=a, b=b)\r\n                    model_results['Validation_Set'].append(corpus_title[i])\r\n                    model_results['Topics'].append(k)\r\n                    model_results['Alpha'].append(a)\r\n                    model_results['Beta'].append(b)\r\n                    model_results['Coherence'].append(cv)\r\n\r\n                    pbar.update(1)\r\n    pd.DataFrame(model_results).to_csv('lda_tuning_results.csv', index=False)\r\n    pbar.close()
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- TopicEval.py	(revision 84efaac2f8742ba0c2723af3466c11db4e7d16c5)
++++ TopicEval.py	(date 1590772527228)
+@@ -44,7 +44,7 @@
+ 
+ ## remove stopwords, make bigrams, and lemmatize
+ import nltk
+-#nltk.download('stopwords')
++nltk.download('stopwords')
+ from nltk.corpus import stopwords
+ 
+ stop_words = stopwords.words('english')
+@@ -61,7 +61,6 @@
+ 
+ 
+ import  spacy
+-
+ nlp = spacy.load('en_core_web_sm', disable=['parser', 'ner'])
+ 
+ def lemmatization(texts, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV']):
+Index: .idea/Data-Aid.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<module type=\"PYTHON_MODULE\" version=\"4\">\r\n  <component name=\"NewModuleRootManager\">\r\n    <content url=\"file://$MODULE_DIR$\" />\r\n    <orderEntry type=\"jdk\" jdkName=\"Python 3.7 (2)\" jdkType=\"Python SDK\" />\r\n    <orderEntry type=\"sourceFolder\" forTests=\"false\" />\r\n  </component>\r\n  <component name=\"TestRunnerService\">\r\n    <option name=\"PROJECT_TEST_RUNNER\" value=\"Unittests\" />\r\n  </component>\r\n</module>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/Data-Aid.iml	(revision 84efaac2f8742ba0c2723af3466c11db4e7d16c5)
++++ .idea/Data-Aid.iml	(date 1590772180351)
+@@ -2,10 +2,7 @@
+ <module type="PYTHON_MODULE" version="4">
+   <component name="NewModuleRootManager">
+     <content url="file://$MODULE_DIR$" />
+-    <orderEntry type="jdk" jdkName="Python 3.7 (2)" jdkType="Python SDK" />
++    <orderEntry type="jdk" jdkName="Python 3.8 (ProjectOne)" jdkType="Python SDK" />
+     <orderEntry type="sourceFolder" forTests="false" />
+   </component>
+-  <component name="TestRunnerService">
+-    <option name="PROJECT_TEST_RUNNER" value="Unittests" />
+-  </component>
+ </module>
+\ No newline at end of file
