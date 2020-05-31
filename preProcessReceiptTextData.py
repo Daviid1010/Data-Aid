@@ -1,6 +1,7 @@
 import os
 import re
 import pandas as pd
+from collections import Counter
 
 
 
@@ -35,9 +36,10 @@ trigram_mod = gensim.models.phrases.Phraser(trigram)
 import nltk
 # nltk.download('stopwords')
 from nltk.corpus import stopwords
-
+from nltk.stem.snowball import SnowballStemmer
+stemmer = SnowballStemmer('english')
 stop_words = stopwords.words('english')
-stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'gratuity'])
+stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'gratuity', 'thank', 'you', 'server', 'table', 'total', 'subtotal','service', 'due'])
 
 
 def remove_stopwords(texts):
@@ -65,20 +67,32 @@ def lemmatization(texts, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV']):
     return texts_out
 
 
+def stemming(texts):
+    texts_out = []
+    for sent in texts:
+        texts_out.append(stemmer.stem(sent))
+    return texts_out
+
+
 data_words_nostops = remove_stopwords(data_words)
 data_words_bigrams = make_bigrams(data_words_nostops)
 
 data_lemmatized = lemmatization(data_words_bigrams, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV'])
+#data_stemmed = stemming(data_words)
 
-print(data_lemmatized[:1])
+#counts = Counter(data_lemmatized)
+
+print(Counter(" ".join(receipts['text_processed']).split()).most_common(25))
+
+#print(data_lemmatized[:1])
 
 import gensim.corpora as corpora
 id2word = corpora.Dictionary(data_lemmatized)
 texts = data_lemmatized
 corpus = [id2word.doc2bow(text) for text in texts]
 
-print(corpus[:1])
-
+#print(corpus[:1])
+"""
 lda_model = gensim.models.LdaModel(corpus=corpus,
                                    id2word=id2word,
                                    random_state=100,
@@ -86,8 +100,11 @@ lda_model = gensim.models.LdaModel(corpus=corpus,
                                    passes=10,
                                    per_word_topics=True,
                                    num_topics=5)
+"""
 
-from pprint import  pprint
-pprint(lda_model.print_topics())
-doc_lda = lda_model[corpus]
+
+
+##from pprint import  pprint
+##pprint(lda_model.print_topics())
+##doc_lda = lda_model[corpus]
 
