@@ -1,5 +1,5 @@
 import os
-
+import re
 import gensim
 import numpy as np
 import pandas as pd
@@ -14,6 +14,10 @@ print(data.keys())
 data = data[1]
 
 documents = data
+
+documents = documents.map(lambda x: re.sub('\d+|-|\.|\(|\)\:\#', ' ', x))
+documents = documents.map(lambda x: x.lower())
+documents = documents.map(lambda x: re.sub('tax|cash|total|subtotal|thank|you|card|cashier|order|gratuity|tip|change|visa|date|phone',' ', x))
 
 print(len(documents))
 print(documents[:5])
