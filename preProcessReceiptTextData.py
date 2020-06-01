@@ -9,8 +9,9 @@ receipts = pd.read_csv('texts.csv', header=None)
 # print(receipts.head())
 # print(type(receipts))
 # print(receipts.keys())
-receipts['text_processed'] = receipts[1].map(lambda x: re.sub('[,\.!?^\d+\s|\s\d+\s|\s\d+$]', ' ', x))
+receipts['text_processed'] = receipts[1].map(lambda x: re.sub('[,\.!?^\d+\s|\s\d+\s|\s\d+$\:\/\-]', ' ', x))
 receipts['text_processed'] = receipts['text_processed'].map(lambda x: x.lower())
+receipts['text_processed'] = receipts['text_processed'].map(lambda x: re.sub('total|tax|pm|#|subtotal|table|server|%|you|order|thank|due|check|pay|change|tip|receipt| cashier', ' ', x))
 
 # print(receipts['text_processed'].head())
 
@@ -82,9 +83,9 @@ data_lemmatized = lemmatization(data_words_bigrams, allowed_postags=['NOUN', 'AD
 
 #counts = Counter(data_lemmatized)
 
-print(Counter(" ".join(receipts['text_processed']).split()).most_common(25))
+#print(Counter(" ".join(receipts['text_processed']).split()).most_common(25))
 
-#print(data_lemmatized[:1])
+print(data_lemmatized[:1])
 
 import gensim.corpora as corpora
 id2word = corpora.Dictionary(data_lemmatized)
@@ -92,7 +93,7 @@ texts = data_lemmatized
 corpus = [id2word.doc2bow(text) for text in texts]
 
 #print(corpus[:1])
-"""
+
 lda_model = gensim.models.LdaModel(corpus=corpus,
                                    id2word=id2word,
                                    random_state=100,
@@ -100,11 +101,11 @@ lda_model = gensim.models.LdaModel(corpus=corpus,
                                    passes=10,
                                    per_word_topics=True,
                                    num_topics=5)
-"""
 
 
 
-##from pprint import  pprint
-##pprint(lda_model.print_topics())
-##doc_lda = lda_model[corpus]
+
+from pprint import  pprint
+pprint(lda_model.print_topics())
+doc_lda = lda_model[corpus]
 

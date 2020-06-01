@@ -1,32 +1,30 @@
-import io
 import os
-import spacy
+
+import gensim
+import numpy as np
+import pandas as pd
+# nltk.download('wordnet')
+from gensim.models import CoherenceModel
+from nltk.stem import WordNetLemmatizer, SnowballStemmer
 
 print(os.getcwd())
-import pandas as pd
-import matplotlib as plt
-data = pd.read_csv('LineItemData.csv')
-data = data['Description']
+
+data = pd.read_csv('texts.csv', header=None)
+print(data.keys())
+data = data[1]
 
 documents = data
 
 print(len(documents))
 print(documents[:5])
 
-import gensim
-from gensim.utils import simple_preprocess
-from gensim.parsing.preprocessing import STOPWORDS
-from  nltk.stem import WordNetLemmatizer, SnowballStemmer
-from nltk.stem.porter import *
-import  numpy as np
 np.random.seed(2020)
 stemmer = SnowballStemmer('english')
-import nltk
-#nltk.download('wordnet')
 
 
 def lemmatze_stemming(text):
     return stemmer.stem(WordNetLemmatizer().lemmatize(text, pos='v'))
+
 
 def preprocess(text):
     result = []
@@ -35,7 +33,8 @@ def preprocess(text):
             result.append(lemmatze_stemming(token))
     return result
 
-doc_sample = documents[10000]
+
+doc_sample = documents[20]
 print('original document: ')
 words = []
 for word in doc_sample.split(' '):
@@ -49,9 +48,9 @@ print(processed_docs[:10])
 
 dictionary = gensim.corpora.Dictionary(processed_docs)
 count = 0
-for k , v in dictionary.iteritems():
-    print(k,v)
-    count +=1
+for k, v in dictionary.iteritems():
+    print(k, v)
+    count += 1
     if count > 10:
         break
 
@@ -72,50 +71,45 @@ def make_trigrams(texts):
     return  [trigram_mod[bigram_mod[doc]] for doc in texts]
 """
 
-
-
-
 bow_corpus = [dictionary.doc2bow(doc) for doc in processed_docs]
-print(bow_corpus[10000])
+print(bow_corpus[20])
 
-bow_doc_4310 = bow_corpus[10000]
+bow_doc_4310 = bow_corpus[20]
 for i in range(len(bow_doc_4310)):
     print("Word {} (\"{}\") appears {} time.".format(bow_doc_4310[i][0],
-                                               dictionary[bow_doc_4310[i][0]],
-bow_doc_4310[i][1]))
-
-
+                                                     dictionary[bow_doc_4310[i][0]],
+                                                     bow_doc_4310[i][1]))
 
 #### TF-IDF
 
 from gensim import corpora, models
 
-
 tfidf = models.TfidfModel(bow_corpus)
 corpus_tfidf = tfidf[bow_corpus]
 
-from pprint import  pprint
+from pprint import pprint
+
 for doc in corpus_tfidf:
     pprint(doc)
     break
 
-##lda_model = gensim.models.LdaMulticore(bow_corpus, num_topics=10, id2word=dictionary, passes=10, workers=2, per_word_topics=True, chunksize=100)
-##model = gensim.models.ldamodel(bow_corpus)
-from sklearn.decomposition import LatentDirichletAllocation as LDA
+# #lda_model = gensim.models.LdaMulticore(bow_corpus, num_topics=10, id2word=dictionary, passes=10, workers=2,
+# per_word_topics=True, chunksize=100) #model = gensim.models.ldamodel(bow_corpus)
 
-ldamodel = gensim.models.ldamodel.LdaModel(bow_corpus, num_topics=6, id2word=dictionary, passes=2)
+ldamodel = gensim.models.ldamodel.LdaModel(bow_corpus, num_topics=4, id2word=dictionary, passes=100)
 print(ldamodel.print_topics(num_topics=3, num_words=3))
-for i in  ldamodel.show_topics():
+for i in ldamodel.show_topics():
     print(i[0], i[1])
 
-##pprint(lda_model.print_topics())
-##doc_lda = lda_model[bow_corpus]
+pprint(ldamodel.print_topics())
+doc_lda = ldamodel[bow_corpus]
 
 
-ldamodel_tfidf = gensim.models.LdaModel(corpus_tfidf, num_topics=6, id2word=dictionary, passes=2)
+ldamodel_tfidf = gensim.models.LdaModel(corpus_tfidf, num_topics=3, id2word=dictionary, passes=100)
 print(ldamodel_tfidf.print_topics(num_topics=3, num_words=3))
-for i in  ldamodel_tfidf.show_topics():
+for i in ldamodel_tfidf.show_topics():
     print(i[0], i[1])
+
 
 def print_topics(model, count_vectorizer, n_top_words):
     words = count_vectorizer.get_feature_names()
@@ -124,8 +118,10 @@ def print_topics(model, count_vectorizer, n_top_words):
         print(" ".join([words[i]
                         for i in topic.argsort()[:-n_top_words - 1:-1]]))
 
+
 from sklearn.feature_extraction.text import CountVectorizer
 import seaborn as sns
+
 countVectoriser = CountVectorizer(stop_words='english')
 
 count_data = countVectoriser.fit_transform(documents.fillna('').astype(str))
@@ -153,13 +149,8 @@ def plot_10_most_common_words(count_data, count_vectorizer):
     plt.ylabel('counts')
     plt.show()
 
+
 plot_10_most_common_words(count_data, countVectoriser)
-
-from pyLDAvis import sklearn as sklearn_lda
-import pickle
-import pyLDAvis
-import IPython
-
 
 ##panel = pyLDAvis.sklearn.prepare(ldamodel_tfidf, count_data, countVectoriser, mds='tsne')
 ##pyLDAvis.save_html(panel, 'LDA_Visualization.html')
@@ -167,6 +158,3 @@ import IPython
 pprint(ldamodel_tfidf.print_topics())
 doc_lda = ldamodel_tfidf[corpus_tfidf]
 
-from gensim.models import CoherenceModel
-
-#oherence_model_lda = CoherenceModel(model=ldamodel_tfidf, texts=)
