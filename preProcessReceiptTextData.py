@@ -5,17 +5,19 @@ from collections import Counter
 
 import tqdm
 
-receipts = pd.read_csv('texts.csv', header=None)
+receipts = pd.read_csv('joinedLineItems.csv')
 # print(receipts.head())
 # print(type(receipts))
 # print(receipts.keys())
-receipts['text_processed'] = receipts[1].map(lambda x: re.sub('[,\.!?^\d+\s|\s\d+\s|\s\d+$\:\/\-]', ' ', x))
+print(receipts.keys())
+receipts['Description'] = receipts['Description'].astype(str)
+receipts['text_processed'] = receipts['Description'].map(lambda x: re.sub('[,\.!?^\d+\s|\s\d+\s|\s\d+$\:\/\-]', ' ', x))
 receipts['text_processed'] = receipts['text_processed'].map(lambda x: x.lower())
 receipts['text_processed'] = receipts['text_processed'].map(
     lambda x: re.sub('total|tax|pm|#|subtotal|table|server|%|you|order|thank|due|check|pay|change|tip|receipt| cashier',
                      ' ', x))
 
-# print(receipts['text_processed'].head())
+print(receipts.head())
 
 import gensim
 from gensim.utils import simple_preprocess
@@ -106,7 +108,7 @@ lda_model = gensim.models.LdaModel(corpus=corpus,
                                    chunksize=100,
                                    passes=10,
                                    per_word_topics=True,
-                                   num_topics=5)
+                                   num_topics=3)
 
 from pprint import pprint
 
@@ -125,7 +127,7 @@ print('\nCoherence Score: ', coherence_lda)
 def compute_coherence_values(corpus, dictionary, k, a, b):
     lda_model = gensim.models.LdaModel(corpus=corpus,
                                        id2word=id2word,
-                                       num_topics=5,
+                                       num_topics=3,
                                        random_state=100,
                                        chunksize=100,
                                        passes=10,
