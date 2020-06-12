@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
+
 docs = pd.read_csv('joinedLineItems.csv', encoding='utf-8')
 
 from sklearn.feature_extraction.text import CountVectorizer
@@ -11,7 +12,7 @@ df = cv.fit_transform(docs['Description'])
 
 from sklearn.decomposition import LatentDirichletAllocation
 
-lda = LatentDirichletAllocation(n_components=4, random_state=42)
+lda = LatentDirichletAllocation(n_components=12, random_state=42)
 lda.fit(df)
 
 for index, topic in enumerate(lda.components_):
@@ -27,11 +28,10 @@ print('Perpexility: ', lda.perplexity(df))
 from sklearn.decomposition import NMF
 from sklearn.feature_extraction.text import TfidfTransformer, TfidfVectorizer
 
-
 tv = TfidfVectorizer(max_df=0.95, min_df=2, stop_words='english')
 tfidf = tv.fit_transform(docs['Description'])
 
-nmf = NMF(n_components=4, random_state=1).fit(tfidf)
+nmf = NMF(n_components=12, random_state=1).fit(tfidf)
 
 
 def print_top_words(model, feature_names, n_top_words):
@@ -43,8 +43,8 @@ def print_top_words(model, feature_names, n_top_words):
     print()
 
 
-
 tfidf_fnames = tv.get_feature_names()
 print_top_words(nmf, tfidf_fnames, 15)
 
 
+import pyLDAvis
