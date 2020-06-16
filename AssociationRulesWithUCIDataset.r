@@ -1,5 +1,5 @@
-getwd()
-setwd("Desktop/Data-Aid")
+#getwd()
+#setwd("Desktop/Data-Aid")
 library(dplyr)
 library(tidyverse)
 library(readxl)
@@ -15,7 +15,7 @@ library(plyr)
 retail = read.csv("OnlineRetail.csv")
 retail = retail[complete.cases(retail),]
 retail = retail %>% mutate(Description = as.factor(Description))
-retail = retail %>% muutate(Country= as.factor(Country))
+retail = retail %>% mutate(Country= as.factor(Country))
 retail$Date = as.Date(retail$InvoiceDate)
 retail$Time = str_sub(as.character(retail$InvoiceDate),-5,-1)
 retail$Time = paste0(retail$Time,":00")
@@ -54,7 +54,7 @@ tmp
 
 tmp %>%
   ggplot(aes(x=reorder(Description, count), y =count)) +
-  geom_bar(stat = "identity", fill="indian red")+
+  geom_bar(stat = "identity", fill="grey")+
   coord_flip()
 
 
@@ -93,7 +93,7 @@ itemFrequencyPlot(tr, topN = 20, type='absolute')
 
 #### create some rules
 
-rules = apriori(tr, parameter = list(supp=0.001, conf =0.8))
+rules = apriori(tr, parameter = list(supp=0.001, conf =0.8, maxlen=100))
 rules = sort(rules, by = 'confidence', decreasing = TRUE)
 summary(rules)
 inspect(rules[1:10])
